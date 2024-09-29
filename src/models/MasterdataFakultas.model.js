@@ -13,7 +13,7 @@ class MasterdataFakultasModel {
       uuid: {
         type: DataTypes.UUID,
         allowNull: false,
-        defaultValue: DataTypes.literal('gen_random_uuid()')
+        defaultValue: server.model.db.literal('gen_random_uuid()')
       },
       kode: {
         type: DataTypes.STRING(60),
@@ -26,12 +26,12 @@ class MasterdataFakultasModel {
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.literal('CURRENT_TIMESTAMP')
+        defaultValue: server.model.db.literal('CURRENT_TIMESTAMP')
       },
       updated_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.literal('CURRENT_TIMESTAMP')
+        defaultValue: server.model.db.literal('CURRENT_TIMESTAMP')
       }
     }, {
       tableName: 'masterdata_fakultas',

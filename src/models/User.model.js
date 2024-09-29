@@ -15,6 +15,10 @@ class UsersModel {
         allowNull: false,
         defaultValue: Main.model.db.literal('gen_random_uuid()')
       },
+      username: {
+        type: DataTypes.TEXT,
+        allowNull: false
+      },
       chat_id: {
         type: DataTypes.BIGINT,
         allowNull: false

@@ -13,7 +13,7 @@ class DataIKUModel {
       uuid: {
         type: DataTypes.UUID,
         allowNull: false,
-        defaultValue: DataTypes.literal('gen_random_uuid()')
+        defaultValue: server.model.db.literal('gen_random_uuid()')
       },
       masterdata_iku_id: {
         type: DataTypes.BIGINT,
@@ -38,12 +38,12 @@ class DataIKUModel {
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.literal('CURRENT_TIMESTAMP')
+        defaultValue: server.model.db.literal('CURRENT_TIMESTAMP')
       },
       updated_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.literal('CURRENT_TIMESTAMP')
+        defaultValue: server.model.db.literal('CURRENT_TIMESTAMP')
       }
     }, {
       tableName: 'data_iku',

@@ -1,19 +1,19 @@
 // Library
 import { DataTypes } from "sequelize";
 
-class MahasiswaModel {
-  constructor(server) {
-    const table = server.model.db.define('mahasiswa', {
+class MasterdataDosenModel {
+  constructor(Main) {
+    const table = Main.model.db.define('masterdata_dosen', {
       id: {
         type: DataTypes.BIGINT,
+        allowNull: false,
         primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
+        autoIncrement: true
       },
       uuid: {
         type: DataTypes.UUID,
         allowNull: false,
-        defaultValue: server.model.db.literal(`gen_random_uuid()`)
+        defaultValue: Main.model.db.literal(`gen_random_uuid()`)
       },
       prodi_id: {
         type: DataTypes.BIGINT,
@@ -21,9 +21,17 @@ class MahasiswaModel {
         references: {
           model: 'masterdata_prodi',
           key: 'id'
-        }
+        },
       },
-      nim: {
+      user_id: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
+        references: {
+          model: 'users',
+          key: 'id'
+        },
+      },
+      nip: {
         type: DataTypes.STRING(20),
         allowNull: false
       },
@@ -31,18 +39,23 @@ class MahasiswaModel {
         type: DataTypes.STRING(60),
         allowNull: false
       },
+      is_notify: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: server.model.db.literal('CURRENT_TIMESTAMP')
+        defaultValue: Main.model.db.literal('CURRENT_TIMESTAMP')
       },
       updated_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: server.model.db.literal('CURRENT_TIMESTAMP')
-      }
+        defaultValue: Main.model.db.literal('CURRENT_TIMESTAMP')
+      },
     }, {
-      tableName: 'mahasiswa',
+      tableName: 'masterdata_dosen',
       timestamps: false
     });
 
@@ -50,4 +63,4 @@ class MahasiswaModel {
   }
 }
 
-export default MahasiswaModel;
+export default MasterdataDosenModel;

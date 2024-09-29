@@ -1,39 +1,74 @@
 import UsersModel from "../models/User.model.js";
+import UserService from "../services/User.service.js";
 
 class HandlerMiddleware {
   constructor(Main) {
     this.Main = Main;
     this.TeleBot = this.Main.TeleBot;
 
-    this.UsersModel = new UsersModel(this.Main).table;
+    this.UserService = new UserService(Main);
 
     this.global();
   }
 
   global() {
     this.TeleBot.use(async (ctx, next) => {
+      const context = this.checkContext(ctx);
+
+      const chatId = context.chatId;
+      const messageId = context.messageId;
+      const username = context.username;
+      const text = context.text;
+      const date = context.date;
+
       if(this.Main.env.LOG_REQUEST === 'full') {
         this.Main.Logger('Received Message: \n' + JSON.stringify({
-          chatId: ctx.message.chat.id,
-          messageId: ctx.message.message_id,
-          username: ctx.message.from.username,
-          text: ctx.message.text,
-          date: new Date(ctx.message.date).toISOString()
+          chatId: chatId,
+          messageId: messageId,
+          username: username,
+          text: text,
+          date: new Date(date).toISOString()
         }, null, 2));
       } else if(this.Main.env.LOG_REQUEST === 'medium') {
-        this.Main.Logger('Received Message from ' + ctx.message.chat.id + ' - ' + ctx.message.from.username);
+        this.Main.Logger('Received Message from ' + chatId + ' - ' + username);
       }
       
-      const getUserModel = await this.UsersModel.findOne({ where: { chat_id: ctx.message.chat.id } });
+      const getUserModel = await this.UserService.getUser(username);
       if(!getUserModel) {
         ctx.state.user = {
           state: "start-new",
           data: {}
         }
+        await this.UserService.registerUser(username, chatId);
+      } else {
+        ctx.state.user = JSON.parse(getUserModel.state);
       }
       
       return next();
     });
+  }
+
+  checkContext(ctx) {
+    console.log(ctx.update.callback_query);
+    if (ctx.update.callback_query) {
+      const callbackMessage = ctx.update.callback_query.message;
+      return {
+        chatId: callbackMessage.chat.id,
+        messageId: callbackMessage.message_id,
+        username: ctx.update.callback_query.from.username,
+        text: ctx.update.callback_query.data,  // Data from the callback button
+        date: ctx.update.callback_query.message.date,
+      };
+    } else if (ctx.message) {
+      return {
+        chatId: ctx.message.chat.id,
+        messageId: ctx.message.message_id,
+        username: ctx.message.from.username,
+        text: ctx.message.text,
+        date: ctx.message.date,
+      };
+    }
+    return {};
   }
 }
 

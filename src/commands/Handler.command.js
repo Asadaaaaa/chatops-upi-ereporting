@@ -2,8 +2,7 @@ import StartCommand from "./Start.command.js";
 import DummyFlow from "./DummyFlow.command.js";
 import RegisterCommand from "./Register.command.js";
 import MenuCommand from "./Menu.command.js";
-import IkuCommand from "./Iku.command.js";
-import Iku2Command from "./iku_commands/Iku2.command.js";
+import IkuServices from "../services/Iku.service.js";
 
 class HandlerCommand {
   constructor(Main) {
@@ -32,20 +31,20 @@ class HandlerCommand {
       const split = ctx.state.user.state.split('-');
       const currentIku = split[0]
       if (currentIku === 'iku') {
-        new Iku2Command(this.Main, ctx);
+        new IkuServices(this.Main, ctx);
       }
     })
 
     this.TeleBot.action(/iku-*/, (ctx) => {
       console.log('masuk');
       if (ctx.state.user.state === 'idle') {
-        new IkuCommand(this.Main, ctx);
+        new IkuServices(this.Main, ctx);
       }
     })
 
     this.TeleBot.on('callback_query', (ctx) => {
       if (ctx.state.user.data.status === 'running' || ctx.state.user.data.status === 'finishing') {
-        new IkuCommand(this.Main, ctx);
+        new IkuServices(this.Main, ctx);
       }
     })
   }

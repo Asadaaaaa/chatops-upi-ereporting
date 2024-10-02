@@ -1,4 +1,4 @@
-import UserService from "../services/User.service.js";
+import UserService from "../repositories/User.repository.js";
 import {checkCommand, checkUsername} from "../helpers/CommandCheck.helper.js";
 
 class RegisterCommand {

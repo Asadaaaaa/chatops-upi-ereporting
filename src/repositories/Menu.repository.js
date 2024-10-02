@@ -1,6 +1,6 @@
 import MasterdataIKUModel from "../models/MasterdataIKU.model.js";
 
-class MenuService {
+class MenuRepository {
   constructor(Main) {
     this.Main = Main
     this.MasterdataIkuModel = new MasterdataIKUModel(this.Main).table;
@@ -18,4 +18,4 @@ class MenuService {
 
 }
 
-export default MenuService;
+export default MenuRepository;

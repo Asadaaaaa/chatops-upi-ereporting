@@ -1,7 +1,7 @@
 import UserModel from "../models/User.model.js";
 import MasterdataDosenModel from "../models/MasterdataDosen.model.js";
 
-class UserService {
+class UserRepository {
   constructor(Main) {
     this.Main = Main
     this.UserModel = new UserModel(this.Main).table;
@@ -114,4 +114,4 @@ class UserService {
   }
 }
 
-export default UserService;
+export default UserRepository;

@@ -1,23 +1,23 @@
-import MenuService from "../services/Menu.service.js";
+import MenuRepository from "../repositories/Menu.repository.js";
 import {Markup} from "telegraf";
 
 class MenuCommand {
   constructor(Main, ctx) {
     this.Main = Main;
     this.TeleBot = Main.TeleBot;
-    this.MenuService = new MenuService(Main);
+    this.MenuRepository = new MenuRepository(Main);
     this.state(ctx);
   }
 
   async state(ctx) {
-    if(ctx.message.text === '/menu') return this.menuCmd(ctx);
+    if(ctx.message.text.startsWith('/menu')) return this.menuCmd(ctx);
   }
 
   async menuCmd(context) {
     if(context.state.user.state !== 'idle') {
       return context.reply('Untuk: @' + context.message.from.username + '. \n\nSilahkan selesaikan terlebih dahulu aktifitas anda');
     }
-    const getMenu = await this.MenuService.showMenu();
+    const getMenu = await this.MenuRepository.showMenu();
     const menutText = getMenu.map((menu) => `${menu.nomor}. ${menu.nama}`).join('\n');
     const buttons = getMenu.map((menu) => Markup.button.callback('IKU-' + menu.nomor, 'iku-' + menu.nomor));
     const buttonRows = [];

@@ -1,6 +1,6 @@
-import UserService from "../services/User.service.js";
+import UserService from "../repositories/User.repository.js";
 import UserModel from "../models/User.model.js";
-import userService from "../services/User.service.js";
+import userService from "../repositories/User.repository.js";
 
 class StartCommand {
   constructor(Main, ctx) {
@@ -13,8 +13,9 @@ class StartCommand {
   async state(ctx) {
     ctx.state.user.state = 'start-new';
     await this.UserService.saveState(ctx.message.from.username, ctx.state.user.state);
-    if(ctx.message.text === '/start') return this.startCmd(ctx);
+    if(ctx.message.text.startsWith('/start')) return this.startCmd(ctx);
   }
+  
 
   async startCmd(context) {
     if(context.state.user.state === 'start-new') {

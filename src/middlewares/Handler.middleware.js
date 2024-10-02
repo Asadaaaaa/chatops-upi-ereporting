@@ -1,18 +1,19 @@
 import UsersModel from "../models/User.model.js";
-import UserService from "../services/User.service.js";
+import UserRepository from "../repositories/User.repository.js";
 
 class HandlerMiddleware {
   constructor(Main) {
     this.Main = Main;
     this.TeleBot = this.Main.TeleBot;
 
-    this.UserService = new UserService(Main);
+    this.UserRepository = new UserRepository(Main);
 
     this.global();
   }
 
   global() {
     this.TeleBot.use(async (ctx, next) => {
+      console.log(ctx); 
       const context = this.checkContext(ctx);
 
       const chatId = context.chatId;
@@ -33,13 +34,13 @@ class HandlerMiddleware {
         this.Main.Logger('Received Message from ' + chatId + ' - ' + username);
       }
       
-      const getUserModel = await this.UserService.getUser(username);
+      const getUserModel = await this.UserRepository.getUser(username);
       if(!getUserModel) {
         ctx.state.user = {
           state: "start-new",
           data: {}
         }
-        await this.UserService.registerUser(username, chatId);
+        await this.UserRepository.registerUser(username, chatId);
       } else {
         ctx.state.user = JSON.parse(getUserModel.state);
       }

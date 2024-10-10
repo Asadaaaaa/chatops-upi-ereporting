@@ -89,13 +89,22 @@ class UserRepository {
         nip : nip
       }
     })
-    if (!dosen) return false;
+    if (!dosen) {
+      return {
+        status: 'not-found'
+      };
+    }
+    if (dosen.user_id) {
+      return {
+        status: 'registered'
+      };
+    }
 
     dosen.set({
       user_id: user.id
     });
-
-    return await dosen.save();
+    await dosen.save();
+    return {status: 'success', data: dosen} ;
   }
 
   async getCurrentState(username) {

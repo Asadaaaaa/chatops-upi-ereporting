@@ -10,9 +10,13 @@ class RegisterCommand {
   }
 
   async state(ctx) {
-    const command  = checkCommand(ctx);
-    if(command === '/register') return this.registerCmd(ctx);
-    return this.startRegister(ctx);
+    if (ctx.state.user.state !== 'stop') {
+      const command  = checkCommand(ctx);
+      if(command === '/register') {
+        return this.registerCmd(ctx);
+      }
+      return this.startRegister(ctx);
+    }
   }
 
   async registerCmd(context) {
@@ -35,11 +39,15 @@ class RegisterCommand {
   }
 
   async startRegister(context) {
-    console.log(context);
     const register = await this.UserService.registerDosen(context.message.from.username, context.message.text);
-    if (!register) return context.reply('Untuk: @' + context.message.from.username + '. \n\nData dosen tidak ditemukan. Silahkan Coba Lagi')
+    if (register.status === 'not-found') return context.reply('Untuk: @' + context.message.from.username + '. \n\nData dosen tidak ditemukan. Silahkan Coba Lagi');
+    if (register.status === 'registered') return context.reply('Untuk: @' + context.message.from.username + '. \n\nDosen telah terdaftar. Silahkan Coba Lagi');
+
     await this.UserService.saveState(context.message.from.username, 'idle');
-    return context.reply('Untuk: @' + context.message.from.username + '. \n\nRegistrasi sukses. Anda terdaftar dengan Nama \n' + register.nama);
+
+    return context.reply('Untuk: @' + context.message.from.username + '. \n\nRegistrasi sukses. Anda terdaftar dengan Nama \n' + register.data.nama +'\n\n'
+      +'Untuk memulai pelaporan, silahkan ketik command /menu'
+    );
 
   }
 }

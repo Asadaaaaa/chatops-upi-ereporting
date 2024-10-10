@@ -2,7 +2,7 @@ import UserService from "../repositories/User.repository.js";
 import IkuRepository from "../repositories/Iku.repository.js";
 import {checkUsername, checkCommand} from "../helpers/CommandCheck.helper.js";
 
-class Iku2Command {
+class IkuService {
   constructor(Main, ctx) {
     this.Main = Main;
     this.TeleBot = Main.TeleBot;
@@ -93,14 +93,23 @@ class Iku2Command {
       const state = ctx.state.user.data.data_iku;
 
       const currentField = state.steps[state.currentStep];
-
-      if (state.selectableFields[currentField]) {
-        const selectedValue = checkCommand(ctx);
-        state.formData[currentField] = selectedValue;
+      if (currentField.startsWith('file')) {
+        if (ctx.message && ctx.message.document) {
+          // Save the file ID or file URL (you can download it later if necessary)
+          state.formData[currentField].value = ctx.message.document.file_id;
+        } else {
+          return await ctx.reply(`Untuk @${this.username}. \n\n Silahkan upload ${state.fieldLabels[state.currentStep]}:`);
+        }
       } else {
-        const userInput = checkCommand(ctx);
-        state.formData[currentField] = userInput;
+        if (state.selectableFields[currentField]) {
+          const selectedValue = checkCommand(ctx);
+          state.formData[currentField] = selectedValue;
+        } else {
+          const userInput = checkCommand(ctx);
+          state.formData[currentField] = userInput;
+        }
       }
+
 
       state.currentStep++;
       await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
@@ -133,7 +142,7 @@ class Iku2Command {
           }])
         }
       };
-      await ctx.reply(`Please choose an option for ${nextFieldLabel}:`, keyboard);
+      await ctx.reply(`Untuk @${this.username}. \n\n Silahkan pilih opsi untuk: ${nextFieldLabel}:`, keyboard);
     } else if (nextField === 'program_studi_id'){
       const options = await this.IkuRepository.getProgramStudiOptions();
       const keyboard = {
@@ -144,7 +153,7 @@ class Iku2Command {
           }])
         }
       };
-      await ctx.reply(`Please choose an option for ${nextFieldLabel}:`, keyboard);
+      await ctx.reply(`Untuk @${this.username}. \n\n Silahkan pilih opsi untuk ${nextFieldLabel}:`, keyboard);
     } else if (nextField === 'fakultas_id'){
       const options = await this.IkuRepository.getFakultasOptions();
       const keyboard = {
@@ -155,13 +164,15 @@ class Iku2Command {
           }])
         }
       };
-      await ctx.reply(`Please choose an option for ${nextFieldLabel}:`, keyboard);
+      await ctx.reply(`Untuk @${this.username}. \n\n Silahkan pilih opsi untuk ${nextFieldLabel}:`, keyboard);
+    } else if (nextField.startsWith('file')) {
+      await ctx.reply(`Silahkan upload ${state.fieldLabels[state.currentStep]}:`);
     } else {
       let textLabel = nextFieldLabel;
       if (nextFieldLabel === 'mahasiswa') {
         textLabel = 'NIM mahasiswa'
       }
-      await ctx.reply(`Please provide ${textLabel}:`);
+      await ctx.reply(`Untuk @${this.username}. \n\n Silahkan Isi ${textLabel}:`);
     }
   }
 
@@ -212,7 +223,8 @@ class Iku2Command {
         // Save form data to the database
         const state = ctx.state.user.data.data_iku.formData;
         await this.UserService.saveState(this.username, 'idle', {});
-        return await ctx.reply('Your data has been saved successfully!');
+        return await ctx.reply(`Untuk @${this.username}. \n\n Data telah berhasil disimpan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu
+        `);
 
       case 'start_over':
         // Reset form and start again
@@ -222,10 +234,11 @@ class Iku2Command {
       case 'cancel':
         // Cancel and clear the form
         await this.UserService.saveState(this.username, 'idle', {});
-        return await ctx.reply('Form filling has been cancelled.');
+        return await ctx.reply(`Untuk @${this.username}. \n\n Pengisian laporan telah dibatalkan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu
+        `);
 
       default:
-        return await ctx.reply('Invalid option. Please try again.');
+        return await ctx.reply(`Untuk @${this.username}. \n\n Pilihan tidak tersedia, silahkan coba lagi.\n\n`);
     }
   }
 
@@ -241,4 +254,4 @@ class Iku2Command {
 
 }
 
-export default Iku2Command;
+export default IkuService;

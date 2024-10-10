@@ -10,7 +10,7 @@ class MenuCommand {
   }
 
   async state(ctx) {
-    if(ctx.message.text.startsWith('/menu')) return this.menuCmd(ctx);
+    if(ctx.message.text.startsWith('/menu') && ctx.state.user.state !== 'stop') return this.menuCmd(ctx);
   }
 
   async menuCmd(context) {

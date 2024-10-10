@@ -11,7 +11,10 @@ class MenuRepository {
       where: {
         is_active: true
       },
-      attributes: ['uuid', 'nomor', 'nama']
+      attributes: ['uuid', 'nomor', 'nama'],
+      order: [
+        ['nomor', 'ASC']
+      ]
     });
     return getMasterdataIKU;
   }

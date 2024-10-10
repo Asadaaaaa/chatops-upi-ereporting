@@ -3,15 +3,30 @@ import DummyFlow from "./DummyFlow.command.js";
 import RegisterCommand from "./Register.command.js";
 import MenuCommand from "./Menu.command.js";
 import IkuServices from "../services/Iku.service.js";
+import EndCommand from "./End.command.js";
 
 class HandlerCommand {
   constructor(Main) {
     this.Main = Main;
     this.TeleBot = this.Main.TeleBot;
 
+    this.TeleBot.on('new_chat_members',(ctx) => {
+      ctx.message.new_chat_members.forEach(async (member) => {
+        const username = member.username ? `@${member.username}` : member.first_name || ' ';
+
+        // Send a welcome message mentioning their username
+        await ctx.reply(`Halo 👋, @' ${username} '. Selamat datang di UPI E-Reporting Group.\\n\\n' +
+        'Untuk mulai menggunakan bot E-Reporting ini, silahkan mengetik command\\n/start.`);
+      });
+    });
+
     this.TeleBot.start((ctx) => {
       // new DummyFlow(this.Main, ctx)
       new StartCommand(this.Main, ctx);
+    });
+
+    this.TeleBot.command('stop', (ctx) => {
+      new EndCommand(this.Main, ctx);
     });
 
     this.TeleBot.command('register', (ctx) => {

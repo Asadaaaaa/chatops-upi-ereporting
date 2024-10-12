@@ -62,6 +62,13 @@ class HandlerCommand {
         new IkuServices(this.Main, ctx);
       }
     })
+
+    this.TeleBot.on('document', (ctx) => {
+      console.log(ctx.state.user.state);
+      if (ctx.state.user.data.status === 'running' || ctx.state.user.data.status === 'finishing') {
+        new IkuServices(this.Main, ctx);
+      }
+    });
   }
 }
 

@@ -1,6 +1,7 @@
 import UserService from "../repositories/User.repository.js";
 import IkuRepository from "../repositories/Iku.repository.js";
 import {checkUsername, checkCommand} from "../helpers/CommandCheck.helper.js";
+import FileService from "./File.service.js";
 
 class IkuService {
   constructor(Main, ctx) {
@@ -95,8 +96,12 @@ class IkuService {
       const currentField = state.steps[state.currentStep];
       if (currentField.startsWith('file')) {
         if (ctx.message && ctx.message.document) {
-          // Save the file ID or file URL (you can download it later if necessary)
-          state.formData[currentField].value = ctx.message.document.file_id;
+          const fileService = new FileService(this.Main, ctx.state.user.state);
+          const path =  await fileService.downloadFile(ctx.message.document.file_id);
+          if (path === false) {
+            return await ctx.reply(`Untuk @${this.username}. \n\n upload file gagal. Silahkan upload ulang ${state.fieldLabels[state.currentStep]}:`);
+          }
+          state.formData[currentField] = path;
         } else {
           return await ctx.reply(`Untuk @${this.username}. \n\n Silahkan upload ${state.fieldLabels[state.currentStep]}:`);
         }
@@ -109,8 +114,6 @@ class IkuService {
           state.formData[currentField] = userInput;
         }
       }
-
-
       state.currentStep++;
       await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
 

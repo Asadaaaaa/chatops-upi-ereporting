@@ -57,11 +57,9 @@ class IkuService {
     const state = ctx.state.user.data.data_iku;
     let currentField = state.steps[state.currentStep];
 
-    // Auto-skip if the current field is already filled (auto-filled or user-filled)
     while (state.formData[currentField]) {
       state.currentStep++;
       if (state.currentStep >= state.steps.length) {
-        // If all fields are already filled, stop
         return;
       }
       currentField = state.steps[state.currentStep];
@@ -94,24 +92,32 @@ class IkuService {
       const state = ctx.state.user.data.data_iku;
 
       const currentField = state.steps[state.currentStep];
-      if (currentField.startsWith('file')) {
-        if (ctx.message && ctx.message.document) {
-          const fileService = new FileService(this.Main, ctx.state.user.state);
-          const path =  await fileService.downloadFile(ctx.message.document.file_id);
-          if (path === false) {
-            return await ctx.reply(`Untuk @${this.username}. \n\n upload file gagal. Silahkan upload ulang ${state.fieldLabels[state.currentStep]}:`);
-          }
-          state.formData[currentField] = path;
-        } else {
-          return await ctx.reply(`Untuk @${this.username}. \n\n Silahkan upload ${state.fieldLabels[state.currentStep]}:`);
-        }
-      } else {
+      // if (currentField.startsWith('file')) {
+        // if (ctx.message && ctx.message.document) {
+        //   const fileService = new FileService(this.Main, ctx.state.user.state);
+        //   const path =  await fileService.downloadFile(ctx.message.document.file_id);
+        //   if (path === false) {
+        //     return await ctx.reply(`Untuk @${this.username}. \n\n upload file gagal. Silahkan upload ulang ${state.fieldLabels[state.currentStep]}:`);
+        //   }
+        //   state.formData[currentField] = path;
+        // } else {
+        //   return await ctx.reply(`Untuk @${this.username}. \n\n Silahkan upload ${state.fieldLabels[state.currentStep]}:`);
+        // }
+      // } else {
         if (state.selectableFields[currentField]) {
           const selectedValue = checkCommand(ctx);
           state.formData[currentField] = selectedValue;
         } else {
           const userInput = checkCommand(ctx);
           state.formData[currentField] = userInput;
+        }
+      // }
+      if (currentField === 'mahasiswa_id') {
+        const mahasiswa = await this.IkuRepository.getMahasiswa(state.formData[currentField]);
+
+        if (mahasiswa) {
+          state.formData['nama_mahasiswa'] = mahasiswa.nama
+          state.currentStep++
         }
       }
       state.currentStep++;
@@ -120,8 +126,6 @@ class IkuService {
       if (state.currentStep < state.steps.length) {
         await this.promptUserForNextInput(ctx);
       } else {
-        // await this.UserService.saveState(this.username, 'idle', {});
-        // await ctx.reply('Thank you! The form has been completed and saved.');
         await this.showFilledDataWithConfirmation(ctx);
       }
     } else {
@@ -141,7 +145,7 @@ class IkuService {
         reply_markup: {
           inline_keyboard: options.map(option => [{
             text: option.name,
-            callback_data: option.name // Save `name` when selected
+            callback_data: option.name
           }])
         }
       };
@@ -152,7 +156,7 @@ class IkuService {
         reply_markup: {
           inline_keyboard: options.map(option => [{
             text: option.nama,
-            callback_data: option.kode
+            callback_data: option.kode + ' - ' + option.nama
           }])
         }
       };
@@ -163,7 +167,7 @@ class IkuService {
         reply_markup: {
           inline_keyboard: options.map(option => [{
             text: option.nama,
-            callback_data: option.kode
+            callback_data: option.kode + ' - ' + option.nama
           }])
         }
       };
@@ -198,7 +202,6 @@ class IkuService {
     const state = ctx.state.user.data.data_iku;
     const filledData = state.formData;
 
-    // Format filled data for display
     let dataReview = 'untuk @'+this.username+'\n\nData yang telah anda isi untuk '+ctx.state.user.state+' adalah:\n';
     for (const [key, value] of Object.entries(filledData)) {
       dataReview += `${this.getLabelName(key)}: ${value}\n`;
@@ -206,7 +209,6 @@ class IkuService {
     ctx.state.user.data.status = 'finishing';
     await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
 
-    // Display filled data and ask for confirmation
     await ctx.reply(dataReview, {
       reply_markup: {
         inline_keyboard: [
@@ -223,19 +225,20 @@ class IkuService {
 
     switch (selectedOption) {
       case 'save':
-        // Save form data to the database
-        const state = ctx.state.user.data.data_iku.formData;
+        const save = await this.IkuRepository.saveFormData(this.username, ctx);
         await this.UserService.saveState(this.username, 'idle', {});
-        return await ctx.reply(`Untuk @${this.username}. \n\n Data telah berhasil disimpan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu
+        if (save) {
+          return await ctx.reply(`Untuk @${this.username}. \n\n Data telah berhasil disimpan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu
         `);
+        } else {
+          return await ctx.reply(`Untuk @${this.username}. \n\nData Gagal diproses, silahkan ulang kembali pengisian`);
+        }
 
       case 'start_over':
-        // Reset form and start again
         await this.UserService.saveState(this.username, ctx.state.user.state, { status: 'start', data_iku: {} });
         return await this.startProcess(ctx);
 
       case 'cancel':
-        // Cancel and clear the form
         await this.UserService.saveState(this.username, 'idle', {});
         return await ctx.reply(`Untuk @${this.username}. \n\n Pengisian laporan telah dibatalkan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu
         `);
@@ -252,6 +255,7 @@ class IkuService {
     } else {
       field = fieldName
     }
+    if (field === 'mahasiswa') field = 'NIM mahasiswa';
     return field.replace(/_/g, ' ');
   }
 

@@ -56,6 +56,46 @@ class IkuRepository {
     };
   }
 
+  async getProdiByKode(kode) {
+    return await this.MasterdataProdiModel.findOne({
+      where: {
+        kode: kode
+      },
+      attributes: ['kode, nama']
+    });
+  }
+
+  async getMahasiswa(nim) {
+    return await this.MahasiswaModel.findOne({
+      where:{
+        nim : nim
+      },
+      attributes: ['nim', 'nama']
+    });
+  }
+
+  async saveFormData(username, context) {
+    try {
+      const iku = context.state.user.state.split('-');
+      const iku_number = iku[1];
+      const ikuId = await this.getIkuData(iku_number);
+
+      const user = await this.UserService.getUser(username);
+      const formData = context.state.user.data.data_iku.formData;
+
+      await this.DataIkuModel.create({
+        masterdata_iku_id: ikuId.id,
+        user_id: user.id,
+        data: JSON.stringify(formData)
+      })
+
+      return true;
+    } catch (e) {
+      this.Main.Logger("Error Save Data: " + e);
+      console.log("Error Save Data : " + e);
+      return false;
+    }
+  }
 }
 
 export default IkuRepository;

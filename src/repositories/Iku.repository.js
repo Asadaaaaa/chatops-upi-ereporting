@@ -6,6 +6,7 @@ import MasterdataFakultasModel from "../models/MasterdataFakultas.model.js";
 import MasterdataProdiModel from "../models/MasterdataProdi.model.js";
 import DataIKUModel from "../models/DataIKU.model.js";
 import UserService from "./User.repository.js";
+import {getLabelField, setupForm} from "../helpers/FormSetup.helper.js";
 
 class IkuRepository {
   constructor(Main) {
@@ -93,6 +94,33 @@ class IkuRepository {
     } catch (e) {
       this.Main.Logger("Error Save Data: " + e);
       console.log("Error Save Data : " + e);
+      return false;
+    }
+  }
+
+  async getForm(ikuType) {
+    try {
+      const iku = ikuType.split('-');
+      const iku_number = iku[1];
+      const masterIku = await this.getIkuData(iku_number);
+      const data = await this.DataIkuModel.findAll({
+        where: {
+          masterdata_iku_id: masterIku.id
+        }
+      })
+      let formData = [];
+      data.forEach((value, index) => {
+        formData.push(Object.values(JSON.parse(value.data)));
+      })
+      const dataIku = setupForm(masterIku);
+      const label = getLabelField(Object.keys(dataIku));
+
+      return {
+        label: label,
+        formData : formData
+      };
+    } catch (e) {
+      this.Main.Logger("Error get data: " + e);
       return false;
     }
   }

@@ -4,6 +4,7 @@ import RegisterCommand from "./Register.command.js";
 import MenuCommand from "./Menu.command.js";
 import IkuServices from "../services/Iku.service.js";
 import EndCommand from "./End.command.js";
+import ExportCommand from "./Export.command.js";
 
 class HandlerCommand {
   constructor(Main) {
@@ -37,6 +38,10 @@ class HandlerCommand {
       new MenuCommand(this.Main, ctx);
     });
 
+    this.TeleBot.command('export', (ctx) => {
+      new ExportCommand(this.Main, ctx);
+    });
+
     this.TeleBot.on('text', (ctx) => {
       console.log(ctx.state);
       const currentState = ctx.state.user.state;
@@ -55,11 +60,17 @@ class HandlerCommand {
       if (ctx.state.user.state === 'idle') {
         new IkuServices(this.Main, ctx);
       }
+      if (ctx.state.user.state === 'export') {
+        new ExportCommand(this.Main, ctx);
+      }
     })
 
     this.TeleBot.on('callback_query', (ctx) => {
       if (ctx.state.user.data.status === 'running' || ctx.state.user.data.status === 'finishing') {
         new IkuServices(this.Main, ctx);
+      }
+      if (ctx.state.user.state === 'export') {
+        new ExportCommand(this.Main, ctx);
       }
     })
 

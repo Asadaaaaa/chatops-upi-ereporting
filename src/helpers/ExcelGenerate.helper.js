@@ -8,11 +8,11 @@ import exceljs from 'exceljs';
  * @example
  * const columns = ['Name', 'Age', 'Email'];
  * const datas = [
- *   { Name: 'John Doe', Age: 30, Email: 'john.doe@example.com' },
- *   { Name: 'Jane Smith', Age: 25, Email: 'jane.smith@example.com' }
+ *   [ 'John Doe', 30, 'john.doe@example.com' ],
+ *   [ 'Jane Smith', 25, 'jane.smith@example.com' ]
  * ];
  * generateExcelFile(columns, datas);
- * @returns {Promise<void>} A promise that resolves when the Excel file has been written.
+ * @returns {Promise<string>} A string that contains the filepath when the Excel file has been saved.
  */
 
 export const genereateExcel = async (columns, datas) => {
@@ -37,7 +37,15 @@ export const genereateExcel = async (columns, datas) => {
     worksheet.addRow(data);
   }
 
+  worksheet.columns.forEach(column => {
+    const lengths = column.values.map(v => v.toString().length);
+    const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'));
+    column.width = maxLength;
+  });
+
   const filePath = process.cwd() + '/server_data/exported/' + Date.now() + '.xlsx';
 
   await workBook.xlsx.writeFile(filePath);
+
+  return filePath;
 }

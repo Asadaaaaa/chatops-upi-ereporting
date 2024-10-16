@@ -92,18 +92,18 @@ class IkuService {
       const state = ctx.state.user.data.data_iku;
 
       const currentField = state.steps[state.currentStep];
-      // if (currentField.startsWith('file')) {
-        // if (ctx.message && ctx.message.document) {
-        //   const fileService = new FileService(this.Main, ctx.state.user.state);
-        //   const path =  await fileService.downloadFile(ctx.message.document.file_id);
-        //   if (path === false) {
-        //     return await ctx.reply(`Untuk @${this.username}. \n\n upload file gagal. Silahkan upload ulang ${state.fieldLabels[state.currentStep]}:`);
-        //   }
-        //   state.formData[currentField] = path;
-        // } else {
-        //   return await ctx.reply(`Untuk @${this.username}. \n\n Silahkan upload ${state.fieldLabels[state.currentStep]}:`);
-        // }
-      // } else {
+      if (currentField.startsWith('file')) {
+        if (ctx.message && ctx.message.document) {
+          const fileService = new FileService(this.Main, ctx.state.user.state);
+          const path =  await fileService.downloadFile(ctx.message.document);
+          if (path === false) {
+            return await ctx.reply(`Untuk @${this.username}. \n\n upload file gagal. Silahkan upload ulang ${state.fieldLabels[state.currentStep]}:`);
+          }
+          state.formData[currentField] = path;
+        } else {
+          return await ctx.reply(`Untuk @${this.username}. \n\n Silahkan upload ${state.fieldLabels[state.currentStep]}:`);
+        }
+      } else {
         if (state.selectableFields[currentField]) {
           const selectedValue = checkCommand(ctx);
           state.formData[currentField] = selectedValue;
@@ -111,7 +111,7 @@ class IkuService {
           const userInput = checkCommand(ctx);
           state.formData[currentField] = userInput;
         }
-      // }
+      }
       if (currentField === 'mahasiswa_id') {
         const mahasiswa = await this.IkuRepository.getMahasiswa(state.formData[currentField]);
 

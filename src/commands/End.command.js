@@ -13,7 +13,7 @@ class EndCommand {
   async state(ctx) {
     if (ctx.state.user.state !== 'stop') {
       ctx.state.user.state = 'stop';
-      await this.UserRepository.saveState(ctx.message.from.username, ctx.state.user.state);
+      await this.UserRepository.saveState(ctx.message.from.username, ctx.state.user.state, {});
       if(ctx.message.text.startsWith('/stop')) return await this.endCmd(ctx);
     }
   }

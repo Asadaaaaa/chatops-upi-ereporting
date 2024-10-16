@@ -5,38 +5,25 @@ class FileService {
     this.Main = Main;
     this.fs = this.Main.FS;
     this.botToken = this.Main.env.TELEGRAM_BOT_KEY;
+    this.storageUrl = this.Main.env.STORAGE_URL;
     this.path = process.cwd()+'/server_data/iku_files/'+ iku;
   }
 
-  async downloadFile(fileId) {
-    try {
-      // Step 1: Get the file path from Telegram
-      const fileResponse = await axios.get(`https://api.telegram.org/bot${this.botToken}/getFile?file_id=${fileId}`);
-      const filePath = fileResponse.data.result.file_path;
-
-      // Step 2: Download the file using the file path
-      const fileUrl = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
-      const response = await axios.get(fileUrl, { responseType: 'stream' });
-
-      // Step 3: Save the file locally
-
-      if (!this.fs.existsSync(this.path)) {
-        this.fs.mkdirSync(this.path);
-      }
-      const fullPath = path.resolve(this.path, path.basename(filePath));
-      const writer = this.fs.createWriteStream(fullPath);
-
-      response.data.pipe(writer);
-
-      return new Promise((resolve, reject) => {
-        writer.on('finish', () => resolve(fullPath));
-        writer.on('error', reject);
+  async downloadFile(document) {
+    const url = this.storageUrl + '/storage/store';
+    return await axios.post(url,{
+      bot_token: this.botToken,
+      file_id: document.file_id,
+      file_name: document.file_name,
+      mime_type: document.mime_type
+    })
+      .then((response) => {
+        return response.data.data.filePath;
+      })
+      .catch((error) => {
+        console.log(error.response.data);
+        return false;
       });
-
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      return false;
-    }
   }
 }
 

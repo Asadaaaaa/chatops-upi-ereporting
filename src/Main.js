@@ -8,7 +8,7 @@ import HandlerCommand from "./commands/Handler.command.js";
 
 // Libraries
 import * as dotenv from 'dotenv';
-import FS from 'fs';
+import FS from 'fs-extra';
 import { Telegraf } from "telegraf";
 
 class Main {

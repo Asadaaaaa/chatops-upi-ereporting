@@ -5,7 +5,7 @@ class FileService {
     this.Main = Main;
     this.fs = this.Main.FS;
     this.botToken = this.Main.env.TELEGRAM_BOT_KEY;
-    this.path = process.cwd()+'/src/resources/iku_files/'+ iku;
+    this.path = process.cwd()+'/server_data/iku_files/'+ iku;
   }
 
   async downloadFile(fileId) {

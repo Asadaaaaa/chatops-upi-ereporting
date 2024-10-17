@@ -28,6 +28,11 @@ class ExportCommand {
       await this.UserRepository.saveState(this.username, ctx.state.user.state, stateData);
       ctx.state.user = await this.UserRepository.getCurrentState(this.username);
     }
+    if (ctx.state.user.state === 'stop') {
+      return ctx.reply('Untuk: @' + ctx.message.from.username + '. \n\n'
+        + 'Untuk memulai penggunaan bot, silahkan ketik command \/start\n\n'
+      );
+    }
     if(checkCommand(ctx).startsWith('/export')) return this.exportCmd(ctx);
     return this.startExport(ctx);
   }

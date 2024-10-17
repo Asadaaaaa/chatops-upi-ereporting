@@ -23,6 +23,9 @@ class RegisterCommand {
     if(context.state.user.state === 'register') {
       return this.startRegister(context);
     }
+    if (!checkCommand(context)) {
+      return context.reply('Anda tidak memiliki username telegram. Silahkan atur username anda.');
+    }
     const user = await this.UserService.getUser(context.message.from.username);
     if (user) {
       const registered = await this.UserService.checkUserDosen(context.message.from.username);

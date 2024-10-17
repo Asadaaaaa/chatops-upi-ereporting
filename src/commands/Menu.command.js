@@ -11,12 +11,17 @@ class MenuCommand {
 
   async state(ctx) {
     if(ctx.message.text.startsWith('/menu') && ctx.state.user.state !== 'stop') return this.menuCmd(ctx);
+    if (ctx.state.user.state === 'stop') {
+      return ctx.reply('Untuk: @' + ctx.message.from.username + '. \n\n'
+        + 'Untuk memulai penggunaan bot, silahkan ketik command \/start\n\n'
+      );
+    }
   }
 
   async menuCmd(context) {
     if(context.state.user.state !== 'idle') {
       return context.reply('Untuk: @' + context.message.from.username + '. \n\nSilahkan selesaikan terlebih dahulu aktifitas anda\n\n'
-        + 'Untuk menghentikan penggunaan bot, silahkan ketik command\/stop\n\n'
+        + 'Untuk menghentikan penggunaan bot, silahkan ketik command \/stop\n\n'
       );
     }
     const getMenu = await this.MenuRepository.showMenu();

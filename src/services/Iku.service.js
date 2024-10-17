@@ -254,15 +254,15 @@ class IkuService {
         await this.UserService.saveState(this.username, 'idle', {});
         if (save) {
           return await ctx.reply('Untuk @'+this.username+'. \n\nData telah berhasil disimpan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu\n\n'
-            + 'Untuk melakukan export data, silahkan ketik command\/export\n\n'
-            + 'Untuk menghentikan penggunaan bot, silahkan ketik command\/stop\n\n'
+            + 'Untuk melakukan export data, silahkan ketik command \/export\n\n'
+            + 'Untuk menghentikan penggunaan bot, silahkan ketik command \/stop\n\n'
           );
         } else {
           await this.deletePreviousMessage(ctx);
           return await ctx.reply('Untuk @'+this.username+'. \n\nData Gagal diproses, silahkan ulang kembali pengisian\n\n'
             + 'Untuk melakukan pengisian laporan, silahkan ketik command \/menu\n\n'
-            + 'Untuk melakukan export data, silahkan ketik command\/export\n\n'
-            + 'Untuk menghentikan penggunaan bot, silahkan ketik command\/stop\n\n'
+            + 'Untuk melakukan export data, silahkan ketik command \/export\n\n'
+            + 'Untuk menghentikan penggunaan bot, silahkan ketik command \/stop\n\n'
           );
         }
 
@@ -274,7 +274,7 @@ class IkuService {
       case 'cancel':
         await this.deletePreviousMessage(ctx);
         await this.UserService.saveState(this.username, 'idle', {});
-        return await ctx.reply('Untuk @'+this.username+'. \n\n Pengisian laporan telah dibatalkan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu\n\n'
+        return await ctx.reply('Untuk @'+this.username+'. \n\nPengisian laporan telah dibatalkan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu\n\n'
           + 'Untuk melakukan export data, silahkan ketik command\/export\n\n'
           + 'Untuk menghentikan penggunaan bot, silahkan ketik command\/stop\n\n'
         );

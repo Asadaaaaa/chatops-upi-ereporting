@@ -15,10 +15,6 @@ class EndCommand {
       ctx.state.user.state = 'stop';
       await this.UserRepository.saveState(ctx.message.from.username, ctx.state.user.state, {});
       if(ctx.message.text.startsWith('/stop')) return await this.endCmd(ctx);
-    } else {
-      return ctx.reply('Untuk @' + ctx.message.from.username + '.\n\n' +
-        'Untuk memulai bot, silahkan ketik command \n\/start\n\n'
-      );
     }
   }
   

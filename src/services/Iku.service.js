@@ -15,7 +15,7 @@ class IkuService {
 
   async state(ctx) {
     if (ctx.state.user.state === 'idle') {
-      await this.UserService.saveState(this.username, checkCommand(ctx) , {status: 'start', data_iku:{}});
+      await this.UserService.saveState(this.username, checkCommand(ctx) , {status: 'start', data_iku:{}, lastMessageId: null});
       ctx.state.user = await this.UserService.getCurrentState(this.username);
     }
     if (ctx.state.user.data.status === 'start') {
@@ -91,17 +91,24 @@ class IkuService {
     if (ctx.state.user.data.status === 'running') {
       const state = ctx.state.user.data.data_iku;
 
+      await this.deletePreviousMessage(ctx);
       const currentField = state.steps[state.currentStep];
       if (currentField.startsWith('file')) {
         if (ctx.message && ctx.message.document) {
           const fileService = new FileService(this.Main, ctx.state.user.state);
           const path =  await fileService.downloadFile(ctx.message.document);
           if (path === false) {
-            return await ctx.reply(`Untuk @${this.username}. \n\n upload file gagal. Silahkan upload ulang ${state.fieldLabels[state.currentStep]}:`);
+            const message = await ctx.reply(`Untuk @${this.username}. \n\nUpload file gagal. Silahkan upload ulang ${state.fieldLabels[state.currentStep]}:`);
+            ctx.state.user.data.lastMessageId = message.message_id;
+            await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
+            return;
           }
           state.formData[currentField] = path;
         } else {
-          return await ctx.reply(`Untuk @${this.username}. \n\n Silahkan upload ${state.fieldLabels[state.currentStep]}:`);
+          const message = await ctx.reply(`Untuk @${this.username}. \n\nSilahkan upload ${state.fieldLabels[state.currentStep]}:`);
+          ctx.state.user.data.lastMessageId = message.message_id;
+          await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
+          return;
         }
       } else {
         if (state.selectableFields[currentField]) {
@@ -121,6 +128,7 @@ class IkuService {
         }
       }
       state.currentStep++;
+      state.isSent = false;
       await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
 
       if (state.currentStep < state.steps.length) {
@@ -138,6 +146,7 @@ class IkuService {
     const currentStep = state.currentStep;
     const nextField = state.steps[currentStep];
     const nextFieldLabel = state.fieldLabels[currentStep];
+    // await this.deletePreviousMessage(ctx);
 
     if (state.selectableFields[nextField]) {
       const options = state.selectableFields[nextField];
@@ -149,7 +158,10 @@ class IkuService {
           }])
         }
       };
-      await ctx.reply(`Untuk @${this.username}. \n\n Silahkan pilih opsi untuk: ${nextFieldLabel}:`, keyboard);
+      if (state.isSent) return;
+      const message = await ctx.reply(`Untuk @${this.username}. \n\nSilahkan pilih opsi untuk ${nextFieldLabel}:`, keyboard);
+      ctx.state.user.data.lastMessageId = message.message_id;
+      await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
     } else if (nextField === 'program_studi_id'){
       const options = await this.IkuRepository.getProgramStudiOptions();
       const keyboard = {
@@ -160,7 +172,10 @@ class IkuService {
           }])
         }
       };
-      await ctx.reply(`Untuk @${this.username}. \n\n Silahkan pilih opsi untuk ${nextFieldLabel}:`, keyboard);
+      if (state.isSent) return;
+      const message = await ctx.reply(`Untuk @${this.username}. \n\nSilahkan pilih opsi untuk ${nextFieldLabel}:`, keyboard);
+      ctx.state.user.data.lastMessageId = message.message_id;
+      await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
     } else if (nextField === 'fakultas_id'){
       const options = await this.IkuRepository.getFakultasOptions();
       const keyboard = {
@@ -171,15 +186,23 @@ class IkuService {
           }])
         }
       };
-      await ctx.reply(`Untuk @${this.username}. \n\n Silahkan pilih opsi untuk ${nextFieldLabel}:`, keyboard);
+      if (state.isSent) return;
+      const message = await ctx.reply(`Untuk @${this.username}. \n\nSilahkan pilih opsi untuk ${nextFieldLabel}:`, keyboard);
+      ctx.state.user.data.lastMessageId = message.message_id;
+      await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
     } else if (nextField.startsWith('file')) {
-      await ctx.reply(`Silahkan upload ${state.fieldLabels[state.currentStep]}:`);
+      const message = await ctx.reply(`Untuk @${this.username}. \n\nSilahkan upload ${state.fieldLabels[state.currentStep]}:`);
+      ctx.state.user.data.lastMessageId = message.message_id;
+      await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
     } else {
       let textLabel = nextFieldLabel;
       if (nextFieldLabel === 'mahasiswa') {
         textLabel = 'NIM mahasiswa'
       }
-      await ctx.reply(`Untuk @${this.username}. \n\n Silahkan Isi ${textLabel}:`);
+      if (state.isSent) return;
+      const message = await ctx.reply(`Untuk @${this.username}. \n\nSilahkan Isi ${textLabel}:`);
+      ctx.state.user.data.lastMessageId = message.message_id;
+      await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
     }
   }
 
@@ -202,14 +225,14 @@ class IkuService {
     const state = ctx.state.user.data.data_iku;
     const filledData = state.formData;
 
-    let dataReview = 'untuk @'+this.username+'\n\nData yang telah anda isi untuk '+ctx.state.user.state+' adalah:\n';
+    let dataReview = 'untuk @'+this.username+'\n\nData yang telah anda isi untuk '+ctx.state.user.state.toUpperCase()+' adalah:\n';
     for (const [key, value] of Object.entries(filledData)) {
       dataReview += `${this.getLabelName(key)}: ${value}\n`;
     }
     ctx.state.user.data.status = 'finishing';
     await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
 
-    await ctx.reply(dataReview, {
+    const message = await ctx.reply(dataReview, {
       reply_markup: {
         inline_keyboard: [
           [{ text: 'Simpan', callback_data: 'save' }],
@@ -218,6 +241,8 @@ class IkuService {
         ]
       }
     });
+    ctx.state.user.data.lastMessageId = message.message_id;
+    await this.UserService.saveState(this.username, ctx.state.user.state, ctx.state.user.data);
   }
 
   async handleUserConfirmation(ctx) {
@@ -228,23 +253,45 @@ class IkuService {
         const save = await this.IkuRepository.saveFormData(this.username, ctx);
         await this.UserService.saveState(this.username, 'idle', {});
         if (save) {
-          return await ctx.reply(`Untuk @${this.username}. \n\n Data telah berhasil disimpan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu
-        `);
+          return await ctx.reply('Untuk @'+this.username+'. \n\nData telah berhasil disimpan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu\n\n'
+            + 'Untuk melakukan export data, silahkan ketik command\/export\n\n'
+            + 'Untuk menghentikan penggunaan bot, silahkan ketik command\/stop\n\n'
+          );
         } else {
-          return await ctx.reply(`Untuk @${this.username}. \n\nData Gagal diproses, silahkan ulang kembali pengisian`);
+          await this.deletePreviousMessage(ctx);
+          return await ctx.reply('Untuk @'+this.username+'. \n\nData Gagal diproses, silahkan ulang kembali pengisian\n\n'
+            + 'Untuk melakukan pengisian laporan, silahkan ketik command \/menu\n\n'
+            + 'Untuk melakukan export data, silahkan ketik command\/export\n\n'
+            + 'Untuk menghentikan penggunaan bot, silahkan ketik command\/stop\n\n'
+          );
         }
 
       case 'start_over':
+        await this.deletePreviousMessage(ctx);
         await this.UserService.saveState(this.username, ctx.state.user.state, { status: 'start', data_iku: {} });
         return await this.startProcess(ctx);
 
       case 'cancel':
+        await this.deletePreviousMessage(ctx);
         await this.UserService.saveState(this.username, 'idle', {});
-        return await ctx.reply(`Untuk @${this.username}. \n\n Pengisian laporan telah dibatalkan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu
-        `);
+        return await ctx.reply('Untuk @'+this.username+'. \n\n Pengisian laporan telah dibatalkan\n\nUntuk melakukan pengisian laporan, silahkan ketik command \/menu\n\n'
+          + 'Untuk melakukan export data, silahkan ketik command\/export\n\n'
+          + 'Untuk menghentikan penggunaan bot, silahkan ketik command\/stop\n\n'
+        );
 
       default:
         return await ctx.reply(`Untuk @${this.username}. \n\n Pilihan tidak tersedia, silahkan coba lagi.\n\n`);
+    }
+  }
+
+  async deletePreviousMessage(ctx) {
+    const lastMessageId = ctx.state.user.data.lastMessageId;
+    if (lastMessageId) {
+      try {
+        await ctx.deleteMessage(lastMessageId);
+      } catch (error) {
+        console.error('Failed to delete message:', error);
+      }
     }
   }
 

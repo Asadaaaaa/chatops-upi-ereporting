@@ -52,7 +52,8 @@ class ExportCommand {
       );
     }
     return context.reply('Untuk @' + context.message.from.username + '.\n\n' +
-      'Silahkan selesaikan terlebih dahulu aktifitas anda'
+      'Silahkan selesaikan terlebih dahulu aktifitas anda\n\n'+
+      'Untuk menghentikan penggunaan bot, silahkan ketik command \/stop'
     );
   }
 

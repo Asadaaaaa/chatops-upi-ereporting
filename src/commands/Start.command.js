@@ -31,6 +31,7 @@ class StartCommand {
     if (context.state.user.state === 'idle') {
       return context.reply('Untuk @' + context.message.from.username + '. \n\n' +
         'Untuk memilih pelaporan, silahkan ketik command\n/menu\n\n' +
+        'Untuk melakukan export data, silahkan ketik command\n/export\n\n' +
         'Untuk menghentikan penggunaan bot, silahkan ketik command\n/stop'
       );
     }

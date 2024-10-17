@@ -15,7 +15,9 @@ class MenuCommand {
 
   async menuCmd(context) {
     if(context.state.user.state !== 'idle') {
-      return context.reply('Untuk: @' + context.message.from.username + '. \n\nSilahkan selesaikan terlebih dahulu aktifitas anda');
+      return context.reply('Untuk: @' + context.message.from.username + '. \n\nSilahkan selesaikan terlebih dahulu aktifitas anda\n\n'
+        + 'Untuk menghentikan penggunaan bot, silahkan ketik command\/stop\n\n'
+      );
     }
     const getMenu = await this.MenuRepository.showMenu();
     const menutText = getMenu.map((menu) => `${menu.nomor}. ${menu.nama}`).join('\n');

@@ -1,10 +1,13 @@
 import exceljs from 'exceljs';
+import {convertCurrency, convertDate} from "./Converter.helper.js";
 
 /**
  * Generates an Excel file from the provided columns and data.
  *
  * @param {string[]} columns - An array of column names.
  * @param {Object[]} datas - An array of data objects, where each object represents a row.
+ * @param {Object} header - An object of header, where each key represents a header.
+ * @param {string} sheetName - A string for worksheet name.
  * @example
  * const columns = ['Name', 'Age', 'Email'];
  * const datas = [
@@ -15,14 +18,18 @@ import exceljs from 'exceljs';
  * @returns {Promise<string>} A string that contains the filepath when the Excel file has been saved.
  */
 
-export const genereateExcel = async (columns, datas) => {
+export const genereateExcel = async (columns, datas, header, sheetName) => {
   const workBook = new exceljs.Workbook();
-  const worksheet = workBook.addWorksheet('Sheet1');
+  const worksheet = workBook.addWorksheet(sheetName);
   const columnScheme = [];
 
-  for(let i in columns) {
-    let key = columns[i].toLowerCase().replace(' ', '_');
-    columnScheme.push({ header: columns[i], key: key, width: 10 });
+  for (let i in columns) {
+    const originalColumn = columns[i];
+    if (header[originalColumn]) {
+      const customHeader = header[originalColumn]
+      const key = originalColumn.toLowerCase().replace(' ', '_');
+      columnScheme.push({ header: customHeader, key: key, width: 10 });
+    }
   }
 
   worksheet.columns = columnScheme;
@@ -30,8 +37,17 @@ export const genereateExcel = async (columns, datas) => {
   for(let i in datas) {
     let data = {};
     for(let j in columns) {
-      let key = columns[j].toLowerCase().replace(' ', '_');
-      data[key] = datas[i][j];
+      if (header[columns[j]]) {
+        let key = columns[j].toLowerCase().replace(' ', '_');
+        let value = datas[i][j];
+        if (key.startsWith('waktu') || key.startsWith('tanggal')) {
+          value = convertDate(value);
+        }
+        if (key.startsWith('jumlah_dana')) {
+          value = convertCurrency(value);
+        }
+        data[key] = value;
+      }
     }
     
     worksheet.addRow(data);

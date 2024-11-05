@@ -20,11 +20,12 @@ class RegisterCommand {
   }
 
   async registerCmd(context) {
+    console.log(context.message.from);
     if(context.state.user.state === 'register') {
       return this.startRegister(context);
     }
-    if (!checkCommand(context)) {
-      return context.reply('Anda tidak memiliki username telegram. Silahkan atur username anda.');
+    if (!checkUsername(context)) {
+      return context.reply('Untuk'+context.message.from.first_name + ' '+context.message.from.last_name+'\n\nAnda tidak memiliki username telegram. Silahkan atur username anda.');
     }
     const user = await this.UserService.getUser(context.message.from.username);
     if (user) {

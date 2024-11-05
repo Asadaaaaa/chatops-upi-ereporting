@@ -16,8 +16,8 @@ class HandlerCommand {
         const username = member.username ? `@${member.username}` : member.first_name || ' ';
 
         // Send a welcome message mentioning their username
-        await ctx.reply(`Halo 👋, @' ${username} '. Selamat datang di UPI E-Reporting Group.\\n\\n' +
-        'Untuk mulai menggunakan bot E-Reporting ini, silahkan mengetik command\\n/start.`);
+        await ctx.reply(`Halo 👋, ${username}. Selamat datang di UPI E-Reporting Group.\\n\\n
+        Untuk mulai menggunakan bot E-Reporting ini, silahkan mengetik command\\n/start.`);
       });
     });
 

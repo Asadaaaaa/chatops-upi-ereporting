@@ -36,6 +36,14 @@ class MasterdataIKUModel {
         type: DataTypes.JSON,
         allowNull: true
       },
+      excel_header: {
+        type: DataTypes.JSON,
+        allowNull: false
+      },
+      excel_sheet: {
+        type: DataTypes.STRING(60),
+        allowNull: false
+      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
